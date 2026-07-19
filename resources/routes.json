@@ -1,0 +1,12 @@
+{
+  "version": "1.1.0",
+  "routes": [
+    {"path": "*/admin/community-intelligence", "layout": "admin_community_intelligence_briefing", "auth_required": true, "meta": {"title": "$t:glitter-community_intelligence.admin.briefing"}},
+    {"path": "*/admin/community-intelligence/signals", "layout": "admin_community_intelligence_signals", "auth_required": true, "meta": {"title": "$t:glitter-community_intelligence.admin.signals"}},
+    {"path": "*/admin/community-intelligence/signals/:id", "layout": "admin_community_intelligence_signal_detail", "auth_required": true, "meta": {"title": "$t:glitter-community_intelligence.admin.signal_detail"}},
+    {"path": "*/admin/community-intelligence/incidents", "layout": "admin_community_intelligence_incidents", "auth_required": true, "meta": {"title": "$t:glitter-community_intelligence.admin.incidents"}},
+    {"path": "*/admin/community-intelligence/incidents/:id", "layout": "admin_community_intelligence_incident_detail", "auth_required": true, "meta": {"title": "$t:glitter-community_intelligence.admin.incident_detail"}},
+    {"path": "*/admin/community-intelligence/audit", "layout": "admin_community_intelligence_audit", "auth_required": true, "meta": {"title": "$t:glitter-community_intelligence.admin.audit"}},
+    {"path": "*/admin/community-intelligence/settings", "layout": "admin_community_intelligence_settings", "auth_required": true, "meta": {"title": "$t:glitter-community_intelligence.admin.settings"}}
+  ]
+}

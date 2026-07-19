@@ -1,0 +1,165 @@
+{
+  "version": "1.2.0",
+  "layout_name": "admin_community_intelligence_incident_detail",
+  "permissions": [
+    "glitter-community_intelligence.intelligence.view"
+  ],
+  "extends": "_admin_base",
+  "meta": {
+    "title": "$t:glitter-community_intelligence.admin.incident_detail"
+  },
+  "transition_overlay": {
+    "wait_for": [
+      "incident"
+    ]
+  },
+  "data_sources": [
+    {
+      "id": "incident",
+      "type": "api",
+      "endpoint": "/api/modules/glitter-community_intelligence/admin/incidents/{{route.id}}",
+      "method": "GET",
+      "auto_fetch": true,
+      "auth_required": true,
+      "loading_strategy": "progressive"
+    }
+  ],
+  "slots": {
+    "content": [
+      {
+        "type": "basic",
+        "name": "Div",
+        "props": {
+          "className": "admin-page-content-fluid space-y-4"
+        },
+        "children": [
+          {
+            "type": "composite",
+            "name": "PageHeader",
+            "props": {
+              "title": "$t:glitter-community_intelligence.admin.incident_detail",
+              "description": "$t:glitter-community_intelligence.admin.notice"
+            }
+          },
+          {
+            "type": "composite",
+            "name": "Alert",
+            "if": "{{_dataSourceErrors?.incident}}",
+            "props": {
+              "type": "error",
+              "message": "$t:glitter-community_intelligence.admin.incident_error"
+            }
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "if": "{{!_dataSourceErrors?.incident}}",
+            "props": {
+              "className": "admin-card space-y-2"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "H2",
+                "text": "$t:glitter-community_intelligence.admin.incident_title|id={{incident?.data?.id}}|type={{incident?.data?.type}}"
+              },
+              {
+                "type": "composite",
+                "name": "Badge",
+                "props": {
+                  "text": "{{$t(\"glitter-community_intelligence.status.\" + incident?.data?.status)}}"
+                }
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.subject|type={{incident?.data?.subject?.type}}|id={{incident?.data?.subject?.id}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.last_activity_at|value={{incident?.data?.last_activity_at | datetime}}"
+              }
+            ]
+          },
+          {
+            "type": "basic",
+            "name": "H2",
+            "if": "{{!_dataSourceErrors?.incident}}",
+            "text": "$t:glitter-community_intelligence.admin.timeline",
+            "children": [
+              {
+                "text": "$t:glitter-community_intelligence.admin.incident_title|id={{incident?.data?.id}}|type={{incident?.data?.type}}"
+              },
+              {
+                "props": {
+                  "text": "{{$t(\"glitter-community_intelligence.status.\" + incident?.data?.status)}}"
+                }
+              }
+            ]
+          },
+          {
+            "type": "basic",
+            "name": "P",
+            "if": "{{!_dataSourceErrors?.incident && (incident?.data?.events ?? []).length === 0}}",
+            "text": "$t:glitter-community_intelligence.admin.timeline_empty"
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "iteration": {
+              "source": "incident?.data?.events ?? []",
+              "item_var": "event",
+              "index_var": "idx"
+            },
+            "props": {
+              "className": "admin-card border-l-4 space-y-1"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "H3",
+                "text": "{{$t(\"glitter-community_intelligence.timeline_event.\" + event.event_type)}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.occurred_at|value={{event.occurred_at | datetime}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.source|type={{event.source_type}}|id={{event.source_id}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "if": "{{event.actor_id}}",
+                "text": "$t:glitter-community_intelligence.admin.actor|id={{event.actor_id}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "if": "{{event.metadata?.from_status && event.metadata?.to_status}}",
+                "text": "$t:glitter-community_intelligence.admin.status_transition|from={{event.metadata.from_status}}|to={{event.metadata.to_status}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "if": "{{event.metadata?.resolution}}",
+                "text": "$t:glitter-community_intelligence.admin.resolution|value={{event.metadata.resolution}}"
+              }
+            ]
+          },
+          {
+            "children": [
+              {
+                "text": "{{$t(\"glitter-community_intelligence.timeline_event.\" + event.event_type)}}"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

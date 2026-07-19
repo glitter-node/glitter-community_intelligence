@@ -1,0 +1,109 @@
+{
+  "version": "1.2.0",
+  "layout_name": "admin_community_intelligence_audit",
+  "permissions": [
+    "glitter-community_intelligence.intelligence.audit"
+  ],
+  "extends": "_admin_base",
+  "meta": {
+    "title": "$t:glitter-community_intelligence.admin.audit"
+  },
+  "transition_overlay": {
+    "wait_for": [
+      "audits"
+    ]
+  },
+  "data_sources": [
+    {
+      "id": "audits",
+      "type": "api",
+      "endpoint": "/api/modules/glitter-community_intelligence/admin/access-logs",
+      "method": "GET",
+      "auto_fetch": true,
+      "auth_required": true,
+      "loading_strategy": "progressive",
+      "params": {
+        "page": "{{query.page}}",
+        "per_page": "{{query.per_page || 20}}"
+      }
+    }
+  ],
+  "slots": {
+    "content": [
+      {
+        "type": "basic",
+        "name": "Div",
+        "props": {
+          "className": "admin-page-content-fluid space-y-4"
+        },
+        "children": [
+          {
+            "type": "composite",
+            "name": "PageHeader",
+            "props": {
+              "title": "$t:glitter-community_intelligence.admin.audit",
+              "description": "$t:glitter-community_intelligence.admin.notice"
+            }
+          },
+          {
+            "type": "composite",
+            "name": "Alert",
+            "if": "{{_dataSourceErrors?.audits}}",
+            "props": {
+              "type": "error",
+              "message": "$t:glitter-community_intelligence.admin.audit_error"
+            }
+          },
+          {
+            "type": "basic",
+            "name": "P",
+            "if": "{{!_dataSourceErrors?.audits && (audits?.data?.data ?? []).length === 0}}",
+            "text": "$t:glitter-community_intelligence.admin.audit_empty"
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "iteration": {
+              "source": "audits?.data?.data ?? []",
+              "item_var": "audit",
+              "index_var": "idx"
+            },
+            "props": {
+              "className": "admin-card space-y-1"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "H3",
+                "text": "{{$t(\"glitter-community_intelligence.audit_feature.\" + audit.feature_identifier)}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.actor|id={{audit.user_id}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.target|type={{audit.target_type}}|id={{audit.target_id}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.occurred_at|value={{audit.viewed_at | datetime}}"
+              },
+              {
+                "type": "basic",
+                "name": "Span",
+                "props": {
+                  "className": "text-xs text-gray-500 dark:text-gray-400"
+                },
+                "text": "{{audit.feature_identifier}}"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
