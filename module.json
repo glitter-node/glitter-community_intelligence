@@ -1,0 +1,21 @@
+{
+  "identifier": "glitter-community_intelligence",
+  "vendor": "Glitter.kr",
+  "name": {
+    "ko": "커뮤니티 인텔리전스",
+    "en": "Community Intelligence"
+  },
+  "version": "0.3.4",
+  "license": "MIT",
+  "description": {
+    "ko": "설명 가능한 규칙 기반 커뮤니티 운영 인텔리전스",
+    "en": "Explainable rule-based community operations intelligence"
+  },
+  "g7_version": ">=7.0.0",
+  "dependencies": {
+    "modules": {
+      "sirsoft-board": ">=1.0.0"
+    },
+    "plugins": {}
+  }
+}

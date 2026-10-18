@@ -1,0 +1,528 @@
+{
+  "version": "1.2.0",
+  "layout_name": "admin_community_intelligence_signal_detail",
+  "permissions": [
+    "glitter-community_intelligence.intelligence.view"
+  ],
+  "extends": "_admin_base",
+  "meta": {
+    "title": "$t:glitter-community_intelligence.admin.signal_detail"
+  },
+  "transition_overlay": {
+    "wait_for": [
+      "signal"
+    ]
+  },
+  "state": {
+    "review_status": "reviewing",
+    "reason_code": "",
+    "note": "",
+    "review_submitting": false,
+    "validation_errors": {},
+    "sensitive_requested": false
+  },
+  "data_sources": [
+    {
+      "id": "signal",
+      "type": "api",
+      "endpoint": "/api/modules/glitter-community_intelligence/admin/signals/{{route.id}}/summary",
+      "method": "GET",
+      "auto_fetch": true,
+      "auth_required": true,
+      "loading_strategy": "progressive"
+    },
+    {
+      "id": "sensitive",
+      "type": "api",
+      "endpoint": "/api/modules/glitter-community_intelligence/admin/signals/{{route.id}}",
+      "method": "GET",
+      "auto_fetch": false,
+      "auth_required": true,
+      "loading_strategy": "progressive"
+    }
+  ],
+  "slots": {
+    "content": [
+      {
+        "type": "basic",
+        "name": "Div",
+        "props": {
+          "className": "admin-page-content-fluid space-y-4"
+        },
+        "children": [
+          {
+            "type": "composite",
+            "name": "PageHeader",
+            "props": {
+              "title": "$t:glitter-community_intelligence.admin.signal_detail",
+              "description": "$t:glitter-community_intelligence.admin.notice"
+            }
+          },
+          {
+            "type": "composite",
+            "name": "Alert",
+            "if": "{{_dataSourceErrors?.signal}}",
+            "props": {
+              "type": "error",
+              "message": "$t:glitter-community_intelligence.admin.signal_error"
+            }
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "if": "{{!_dataSourceErrors?.signal}}",
+            "props": {
+              "className": "admin-card space-y-2"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                  "className": "flex flex-wrap items-center gap-2"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "H2",
+                    "text": "{{$t(\"glitter-community_intelligence.signal_type.\" + signal?.data?.type)}}"
+                  },
+                  {
+                    "type": "composite",
+                    "name": "Badge",
+                    "props": {
+                      "text": "{{$t(\"glitter-community_intelligence.status.\" + signal?.data?.status)}}"
+                    }
+                  },
+                  {
+                    "type": "composite",
+                    "name": "Badge",
+                    "props": {
+                      "variant": "{{signal?.data?.priority >= 75 ? 'danger' : signal?.data?.priority >= 50 ? 'warning' : 'secondary'}}",
+                      "text": "{{$t(\"glitter-community_intelligence.priority.\" + (signal?.data?.priority >= 75 ? \"high\" : signal?.data?.priority >= 50 ? \"medium\" : \"low\"))}}"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.priority_value|value={{signal?.data?.priority ?? 0}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.subject|type={{signal?.data?.subject?.type}}|id={{signal?.data?.subject?.id}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.rule_label|value={{signal?.data?.rule?.identifier}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.detected_at|value={{signal?.data?.detected_at | datetime}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.evidence_count|value={{signal?.data?.evidence_count ?? 0}}"
+              }
+            ]
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "if": "{{!_dataSourceErrors?.signal}}",
+            "props": {
+              "className": "admin-card space-y-2"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "H2",
+                "text": "$t:glitter-community_intelligence.admin.summary"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "{{signal?.data?.summary?.key ?? ''}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "{{signal?.data?.explanation?.key ?? ''}}"
+              }
+            ]
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "permissions": [
+              "glitter-community_intelligence.intelligence.view_sensitive"
+            ],
+            "props": {
+              "className": "admin-card space-y-2"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "H2",
+                "text": "$t:glitter-community_intelligence.admin.sensitive_evidence"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.sensitive_notice"
+              },
+              {
+                "type": "basic",
+                "name": "Button",
+                "if": "{{!_local.sensitive_requested}}",
+                "props": {
+                  "type": "button",
+                  "className": "btn btn-secondary"
+                },
+                "actions": [
+                  {
+                    "type": "click",
+                    "handler": "sequence",
+                    "actions": [
+                      {
+                        "handler": "setState",
+                        "params": {
+                          "target": "local",
+                          "sensitive_requested": true
+                        }
+                      },
+                      {
+                        "handler": "refetchDataSource",
+                        "params": {
+                          "dataSourceId": "sensitive"
+                        }
+                      }
+                    ]
+                  }
+                ],
+                "text": "$t:glitter-community_intelligence.admin.view_sensitive"
+              },
+              {
+                "type": "composite",
+                "name": "Alert",
+                "if": "{{_local.sensitive_requested && _dataSourceErrors?.sensitive}}",
+                "props": {
+                  "type": "error",
+                  "message": "$t:glitter-community_intelligence.admin.sensitive_error"
+                }
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "if": "{{_local.sensitive_requested && !_dataSourceErrors?.sensitive && (sensitive?.data?.observations ?? []).length === 0}}",
+                "text": "$t:glitter-community_intelligence.admin.evidence_empty"
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "iteration": {
+                  "source": "_local.sensitive_requested ? (sensitive?.data?.observations ?? []) : []",
+                  "item_var": "observation",
+                  "index_var": "idx"
+                },
+                "props": {
+                  "className": "border rounded p-3 dark:border-gray-700"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "H3",
+                    "text": "{{observation.kind ?? ''}}"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "text": "$t:glitter-community_intelligence.admin.source|type={{observation.source_type}}|id={{observation.source_id}}"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "text": "$t:glitter-community_intelligence.admin.occurred_at|value={{observation.occurred_at | datetime}}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "if": "{{!_dataSourceErrors?.signal}}",
+            "props": {
+              "className": "admin-card space-y-2"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "H2",
+                "text": "$t:glitter-community_intelligence.admin.review_history"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "if": "{{(signal?.data?.reviews ?? []).length === 0}}",
+                "text": "$t:glitter-community_intelligence.admin.reviews_empty"
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "iteration": {
+                  "source": "signal?.data?.reviews ?? []",
+                  "item_var": "review",
+                  "index_var": "idx"
+                },
+                "props": {
+                  "className": "border-b py-2 dark:border-gray-700"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "text": "$t:glitter-community_intelligence.admin.status_transition|from={{review.from_status}}|to={{review.to_status}}"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "if": "{{review.reason_code}}",
+                    "text": "$t:glitter-community_intelligence.admin.reason|value={{review.reason_code}}"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "if": "{{review.note}}",
+                    "text": "$t:glitter-community_intelligence.admin.note|value={{review.note}}"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "text": "{{review.created_at | datetime}}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "permissions": [
+              "glitter-community_intelligence.intelligence.review"
+            ],
+            "if": "{{signal?.data?.status !== 'resolved' && signal?.data?.status !== 'dismissed'}}",
+            "props": {
+              "className": "admin-card space-y-3"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "H2",
+                "text": "$t:glitter-community_intelligence.admin.review_input"
+              },
+              {
+                "type": "basic",
+                "name": "Select",
+                "props": {
+                  "label": "$t:glitter-community_intelligence.admin.review_status",
+                  "name": "review_status",
+                  "value": "{{_local.review_status}}",
+                  "disabled": "{{_local.review_submitting}}",
+                  "options": [
+                    {
+                      "value": "reviewing",
+                      "label": "$t:glitter-community_intelligence.status.reviewing"
+                    },
+                    {
+                      "value": "observing",
+                      "label": "$t:glitter-community_intelligence.status.observing"
+                    },
+                    {
+                      "value": "resolved",
+                      "label": "$t:glitter-community_intelligence.status.resolved"
+                    },
+                    {
+                      "value": "dismissed",
+                      "label": "$t:glitter-community_intelligence.status.dismissed"
+                    }
+                  ]
+                },
+                "actions": [
+                  {
+                    "type": "change",
+                    "handler": "setState",
+                    "params": {
+                      "target": "local",
+                      "review_status": "{{$event.target.value}}",
+                      "validation_errors": {}
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Input",
+                "if": "{{_local.review_status === 'dismissed'}}",
+                "props": {
+                  "type": "text",
+                  "name": "reason_code",
+                  "label": "$t:glitter-community_intelligence.admin.dismissed_reason",
+                  "required": true,
+                  "value": "{{_local.reason_code}}",
+                  "disabled": "{{_local.review_submitting}}"
+                },
+                "actions": [
+                  {
+                    "type": "change",
+                    "handler": "setState",
+                    "params": {
+                      "target": "local",
+                      "reason_code": "{{$event.target.value}}"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Textarea",
+                "props": {
+                  "name": "note",
+                  "label": "$t:glitter-community_intelligence.admin.review_note",
+                  "value": "{{_local.note}}",
+                  "rows": 4,
+                  "maxLength": 2000,
+                  "disabled": "{{_local.review_submitting}}"
+                },
+                "actions": [
+                  {
+                    "type": "change",
+                    "handler": "setState",
+                    "params": {
+                      "target": "local",
+                      "note": "{{$event.target.value}}"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "if": "{{_local.validation_errors && Object.keys(_local.validation_errors).length > 0}}",
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "iteration": {
+                      "source": "Object.values(_local.validation_errors ?? {}).flatMap(messages => Array.isArray(messages) ? messages : [messages])",
+                      "item_var": "message"
+                    },
+                    "props": {
+                      "className": "form-error"
+                    },
+                    "text": "{{message}}"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Button",
+                "props": {
+                  "type": "button",
+                  "className": "btn btn-primary",
+                  "disabled": "{{_local.review_submitting || _local.review_status === signal?.data?.status || (_local.review_status === 'dismissed' && !_local.reason_code)}}"
+                },
+                "actions": [
+                  {
+                    "type": "click",
+                    "handler": "sequence",
+                    "actions": [
+                      {
+                        "handler": "setState",
+                        "params": {
+                          "target": "local",
+                          "review_submitting": true,
+                          "validation_errors": {}
+                        }
+                      },
+                      {
+                        "handler": "apiCall",
+                        "auth_required": true,
+                        "target": "/api/modules/glitter-community_intelligence/admin/signals/{{route.id}}/reviews",
+                        "params": {
+                          "method": "POST",
+                          "body": {
+                            "status": "{{_local.review_status}}",
+                            "reason_code": "{{_local.review_status === 'dismissed' ? _local.reason_code : undefined}}",
+                            "note": "{{_local.note || undefined}}"
+                          }
+                        },
+                        "onSuccess": [
+                          {
+                            "handler": "setState",
+                            "params": {
+                              "target": "local",
+                              "review_submitting": false,
+                              "reason_code": "",
+                              "note": "",
+                              "validation_errors": {}
+                            }
+                          },
+                          {
+                            "handler": "toast",
+                            "params": {
+                              "type": "success",
+                              "message": "$t:glitter-community_intelligence.admin.review_success"
+                            }
+                          },
+                          {
+                            "handler": "refetchDataSource",
+                            "params": {
+                              "dataSourceId": "signal"
+                            }
+                          }
+                        ],
+                        "onError": [
+                          {
+                            "handler": "setState",
+                            "params": {
+                              "target": "local",
+                              "review_submitting": false,
+                              "validation_errors": "{{error.response?.data?.errors ?? {general:[error.message]}}}"
+                            }
+                          },
+                          {
+                            "handler": "toast",
+                            "params": {
+                              "type": "error",
+                              "message": "$t:glitter-community_intelligence.admin.review_error"
+                            }
+                          }
+                        ]
+                      }
+                    ]
+                  }
+                ],
+                "text": "$t:glitter-community_intelligence.admin.save_review"
+              }
+            ]
+          },
+          {
+            "type": "composite",
+            "name": "Alert",
+            "if": "{{signal?.data?.status === 'resolved' || signal?.data?.status === 'dismissed'}}",
+            "props": {
+              "type": "info",
+              "message": "$t:glitter-community_intelligence.admin.terminal_notice"
+            }
+          }
+        ]
+      }
+    ]
+  }
+}

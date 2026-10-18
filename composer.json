@@ -1,0 +1,21 @@
+{
+  "name": "glitter/community-intelligence",
+  "description": "Community operations intelligence module for GnuBoard7",
+  "type": "library",
+  "version": "0.3.4",
+  "license": "MIT",
+  "autoload": {
+    "psr-4": {
+      "Modules\\Glitter\\CommunityIntelligence\\": "src/",
+      "Modules\\Glitter\\CommunityIntelligence\\Database\\Seeders\\": "database/seeders/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Modules\\Glitter\\CommunityIntelligence\\Tests\\": "tests/"
+    }
+  },
+  "require": {
+    "php": "^8.2"
+  }
+}

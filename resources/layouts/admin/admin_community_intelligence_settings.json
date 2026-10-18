@@ -1,0 +1,126 @@
+{
+  "version": "1.2.0",
+  "layout_name": "admin_community_intelligence_settings",
+  "permissions": [
+    "glitter-community_intelligence.intelligence.configure"
+  ],
+  "extends": "_admin_base",
+  "meta": {
+    "title": "$t:glitter-community_intelligence.admin.settings"
+  },
+  "transition_overlay": {
+    "wait_for": [
+      "rules"
+    ]
+  },
+  "data_sources": [
+    {
+      "id": "rules",
+      "type": "api",
+      "endpoint": "/api/modules/glitter-community_intelligence/admin/rules",
+      "method": "GET",
+      "auto_fetch": true,
+      "auth_required": true,
+      "loading_strategy": "progressive"
+    }
+  ],
+  "slots": {
+    "content": [
+      {
+        "type": "basic",
+        "name": "Div",
+        "props": {
+          "className": "admin-page-content-fluid space-y-4"
+        },
+        "children": [
+          {
+            "type": "composite",
+            "name": "PageHeader",
+            "props": {
+              "title": "$t:glitter-community_intelligence.admin.settings",
+              "description": "$t:glitter-community_intelligence.admin.rules_read_only_notice"
+            }
+          },
+          {
+            "type": "composite",
+            "name": "Alert",
+            "if": "{{_dataSourceErrors?.rules}}",
+            "props": {
+              "type": "error",
+              "message": "$t:glitter-community_intelligence.admin.rules_error"
+            }
+          },
+          {
+            "type": "basic",
+            "name": "P",
+            "if": "{{!_dataSourceErrors?.rules && (rules?.data ?? []).length === 0}}",
+            "text": "$t:glitter-community_intelligence.admin.rules_empty"
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "iteration": {
+              "source": "rules?.data ?? []",
+              "item_var": "rule",
+              "index_var": "idx"
+            },
+            "props": {
+              "className": "admin-card space-y-2"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                  "className": "flex flex-wrap items-center gap-2"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "H2",
+                    "text": "{{$t(\"glitter-community_intelligence.rule.\" + rule.identifier)}}"
+                  },
+                  {
+                    "type": "composite",
+                    "name": "Badge",
+                    "props": {
+                      "variant": "{{rule.enabled ? 'success' : 'secondary'}}",
+                      "text": "{{rule.enabled ? '$t:glitter-community_intelligence.admin.enabled' : '$t:glitter-community_intelligence.admin.disabled'}}"
+                    }
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.rule_identifier|value={{rule.identifier}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.rule_version|value={{rule.version}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.observation_window|value={{rule.observation_window_minutes}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "text": "$t:glitter-community_intelligence.admin.configured_at|value={{rule.configured_at | datetime}}",
+                "if": "{{!!rule.configured_at}}"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "if": "{{!rule.configured_at}}",
+                "text": "$t:glitter-community_intelligence.admin.configured_at_empty"
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}

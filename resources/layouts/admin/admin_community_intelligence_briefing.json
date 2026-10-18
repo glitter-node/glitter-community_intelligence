@@ -1,0 +1,396 @@
+{
+  "version": "1.2.0",
+  "layout_name": "admin_community_intelligence_briefing",
+  "permissions": [
+    "glitter-community_intelligence.intelligence.view"
+  ],
+  "extends": "_admin_base",
+  "meta": {
+    "title": "$t:glitter-community_intelligence.admin.briefing"
+  },
+  "transition_overlay": {
+    "wait_for": [
+      "briefing"
+    ]
+  },
+  "data_sources": [
+    {
+      "id": "briefing",
+      "type": "api",
+      "endpoint": "/api/modules/glitter-community_intelligence/admin/briefing",
+      "method": "GET",
+      "auto_fetch": true,
+      "auth_required": true,
+      "loading_strategy": "progressive",
+      "params": {
+        "hours": "{{query.hours || 24}}"
+      }
+    }
+  ],
+  "slots": {
+    "content": [
+      {
+        "type": "basic",
+        "name": "Div",
+        "props": {
+          "className": "admin-page-content-fluid space-y-4"
+        },
+        "children": [
+          {
+            "type": "composite",
+            "name": "PageHeader",
+            "props": {
+              "title": "$t:glitter-community_intelligence.admin.briefing",
+              "description": "$t:glitter-community_intelligence.admin.notice"
+            }
+          },
+          {
+            "type": "composite",
+            "name": "Alert",
+            "if": "{{_dataSourceErrors?.briefing}}",
+            "props": {
+              "type": "error",
+              "message": "$t:glitter-community_intelligence.admin.briefing_error"
+            }
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "if": "{{!_dataSourceErrors?.briefing}}",
+            "props": {
+              "className": "grid grid-cols-1 md:grid-cols-3 gap-4"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                  "className": "admin-card"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Span",
+                    "text": "$t:glitter-community_intelligence.admin.new_signals"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-2xl font-bold"
+                    },
+                    "text": "{{briefing?.data?.new_signal_count ?? 0}}"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                  "className": "admin-card"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Span",
+                    "text": "$t:glitter-community_intelligence.admin.unreviewed"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-2xl font-bold"
+                    },
+                    "text": "{{briefing?.data?.unreviewed_count ?? 0}}"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                  "className": "admin-card"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Span",
+                    "text": "$t:glitter-community_intelligence.admin.open_incidents"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "props": {
+                      "className": "text-2xl font-bold"
+                    },
+                    "text": "{{briefing?.data?.open_incident_count ?? 0}}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "if": "{{!_dataSourceErrors?.briefing}}",
+            "props": {
+              "className": "admin-card space-y-2"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "H2",
+                "text": "$t:glitter-community_intelligence.admin.priority_signals"
+              },
+              {
+                "type": "basic",
+                "name": "P",
+                "if": "{{(briefing?.data?.priority_signals ?? []).length === 0}}",
+                "text": "$t:glitter-community_intelligence.admin.priority_signals_empty"
+              },
+              {
+                "type": "basic",
+                "name": "Button",
+                "iteration": {
+                  "source": "briefing?.data?.priority_signals ?? []",
+                  "item_var": "signal",
+                  "index_var": "idx"
+                },
+                "props": {
+                  "type": "button",
+                  "className": "block w-full text-left p-3 border rounded dark:border-gray-700"
+                },
+                "actions": [
+                  {
+                    "type": "click",
+                    "handler": "navigate",
+                    "params": {
+                      "path": "/admin/community-intelligence/signals/{{signal.id}}"
+                    }
+                  }
+                ],
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "Span",
+                    "props": {
+                      "className": "font-medium"
+                    },
+                    "text": "{{$t(\"glitter-community_intelligence.signal_type.\" + signal.type)}}"
+                  },
+                  {
+                    "type": "composite",
+                    "name": "Badge",
+                    "props": {
+                      "className": "ml-3",
+                      "variant": "{{signal.priority >= 75 ? 'danger' : signal.priority >= 50 ? 'warning' : 'secondary'}}",
+                      "text": "{{$t(\"glitter-community_intelligence.priority.\" + (signal.priority >= 75 ? \"high\" : signal.priority >= 50 ? \"medium\" : \"low\"))}}"
+                    }
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Span",
+                    "props": {
+                      "className": "float-right"
+                    },
+                    "text": "{{signal.priority ?? 0}}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "if": "{{!_dataSourceErrors?.briefing}}",
+            "props": {
+              "className": "grid grid-cols-1 lg:grid-cols-2 gap-4"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                  "className": "admin-card space-y-2"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "H2",
+                    "text": "$t:glitter-community_intelligence.admin.rule_stats"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "if": "{{Object.keys(briefing?.data?.by_rule ?? {}).length === 0}}",
+                    "text": "$t:glitter-community_intelligence.admin.rule_stats_empty"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "iteration": {
+                      "source": "Object.entries(briefing?.data?.by_rule ?? {})",
+                      "item_var": "stat",
+                      "index_var": "idx"
+                    },
+                    "props": {
+                      "className": "flex items-center justify-between border-b py-2 dark:border-gray-700"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Span",
+                        "text": "{{$t(\"glitter-community_intelligence.rule.\" + stat[0])}}"
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Span",
+                        "props": {
+                          "className": "font-semibold"
+                        },
+                        "text": "{{stat[1] ?? 0}}"
+                      }
+                    ],
+                    "if": "{{Object.keys(briefing?.data?.by_rule ?? {}).length > 0}}"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                  "className": "admin-card space-y-2"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "H2",
+                    "text": "$t:glitter-community_intelligence.admin.priority_stats"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "if": "{{Object.keys(briefing?.data?.by_priority ?? {}).length === 0}}",
+                    "text": "$t:glitter-community_intelligence.admin.priority_stats_empty"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "iteration": {
+                      "source": "['high', 'medium', 'low'].map(level => ({level, count: briefing?.data?.by_priority?.[level] ?? 0}))",
+                      "item_var": "stat",
+                      "index_var": "idx"
+                    },
+                    "props": {
+                      "className": "flex items-center justify-between border-b py-2 dark:border-gray-700"
+                    },
+                    "children": [
+                      {
+                        "type": "basic",
+                        "name": "Span",
+                        "text": "{{$t(\"glitter-community_intelligence.priority.\" + stat.level)}}"
+                      },
+                      {
+                        "type": "basic",
+                        "name": "Span",
+                        "props": {
+                          "className": "font-semibold"
+                        },
+                        "text": "{{stat.count}}"
+                      }
+                    ],
+                    "if": "{{Object.keys(briefing?.data?.by_priority ?? {}).length > 0}}"
+                  }
+                ]
+              }
+            ]
+          },
+          {
+            "type": "basic",
+            "name": "Div",
+            "if": "{{!_dataSourceErrors?.briefing}}",
+            "props": {
+              "className": "grid grid-cols-1 lg:grid-cols-2 gap-4"
+            },
+            "children": [
+              {
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                  "className": "admin-card space-y-2"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "H2",
+                    "text": "$t:glitter-community_intelligence.admin.recent_incidents"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "if": "{{(briefing?.data?.recent_incidents ?? []).length === 0}}",
+                    "text": "$t:glitter-community_intelligence.admin.recent_incidents_empty"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Button",
+                    "iteration": {
+                      "source": "briefing?.data?.recent_incidents ?? []",
+                      "item_var": "incident"
+                    },
+                    "props": {
+                      "type": "button",
+                      "className": "block w-full text-left border-b py-2 dark:border-gray-700"
+                    },
+                    "actions": [
+                      {
+                        "type": "click",
+                        "handler": "navigate",
+                        "params": {
+                          "path": "/admin/community-intelligence/incidents/{{incident.id}}"
+                        }
+                      }
+                    ],
+                    "text": "$t:glitter-community_intelligence.admin.incident_row|id={{incident.id}}|status={{incident.status}}|date={{incident.last_activity_at | datetime}}"
+                  }
+                ]
+              },
+              {
+                "type": "basic",
+                "name": "Div",
+                "props": {
+                  "className": "admin-card space-y-2"
+                },
+                "children": [
+                  {
+                    "type": "basic",
+                    "name": "H2",
+                    "text": "$t:glitter-community_intelligence.admin.recent_reviews"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "P",
+                    "if": "{{(briefing?.data?.recent_reviews ?? []).length === 0}}",
+                    "text": "$t:glitter-community_intelligence.admin.recent_reviews_empty"
+                  },
+                  {
+                    "type": "basic",
+                    "name": "Div",
+                    "iteration": {
+                      "source": "briefing?.data?.recent_reviews ?? []",
+                      "item_var": "review"
+                    },
+                    "props": {
+                      "className": "border-b py-2 dark:border-gray-700"
+                    },
+                    "text": "$t:glitter-community_intelligence.admin.review_row|status={{review.to_status}}|date={{review.created_at | datetime}}"
+                  }
+                ]
+              }
+            ]
+          }
+        ]
+      }
+    ]
+  }
+}
